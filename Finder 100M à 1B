@@ -1,0 +1,111 @@
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local PlaceID = game.PlaceId
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Bouton JPA (toggle)
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(0,50,0,50)
+toggle.Position = UDim2.new(0,10,0.5,-25)
+toggle.Text = "JPA"
+toggle.BackgroundColor3 = Color3.fromRGB(150,0,0)
+toggle.TextScaled = true
+toggle.Font = Enum.Font.Cartoon
+toggle.Parent = gui
+
+-- Frame principale
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0,320,0,260)
+frame.Position = UDim2.new(0.5,-160,0.5,-130)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+frame.Visible = false
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Gradient animé
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0))
+}
+gradient.Parent = frame
+
+task.spawn(function()
+    while true do
+        gradient.Offset = Vector2.new(math.sin(tick()),0)
+        task.wait(0.05)
+    end
+end)
+
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "FINDER\nBy jaimepasarbi"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Font = Enum.Font.Cartoon
+title.Parent = frame
+
+-- Fonction random texte
+local function randomServer()
+    local players = math.random(0,8)
+    local money = math.random(100,1000) -- 100M à 1B
+    return players, money
+end
+
+-- Server hop réel
+local function hop()
+    local url = "https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"
+    local data = HttpService:JSONDecode(game:HttpGet(url))
+
+    for _,server in pairs(data.data) do
+        if server.playing < server.maxPlayers then
+            TeleportService:TeleportToPlaceInstance(PlaceID, server.id, player)
+            break
+        end
+    end
+end
+
+-- Créer les lignes fake
+for i = 1,5 do
+    local players, money = randomServer()
+
+    local line = Instance.new("TextLabel")
+    line.Size = UDim2.new(0.6,0,0,30)
+    line.Position = UDim2.new(0.05,0,0.2 + i*0.12,0)
+    line.BackgroundTransparency = 1
+    line.Text = "👥 "..players.." | 💰 "..money.."M"
+    line.TextColor3 = Color3.fromRGB(255,255,255)
+    line.TextScaled = true
+    line.Font = Enum.Font.Cartoon
+    line.Parent = frame
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.25,0,0,30)
+    btn.Position = UDim2.new(0.7,0,0.2 + i*0.12,0)
+    btn.Text = "REJOIN"
+    btn.BackgroundColor3 = Color3.fromRGB(180,0,0)
+    btn.TextScaled = true
+    btn.Font = Enum.Font.Cartoon
+    btn.Parent = frame
+
+    btn.MouseButton1Click:Connect(function()
+        hop()
+    end)
+end
+
+-- Toggle menu
+toggle.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+end)
