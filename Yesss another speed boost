@@ -1,0 +1,108 @@
+local player = game.Players.LocalPlayer
+
+-- Attendre le perso
+local function getHumanoid()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("Humanoid")
+end
+
+local humanoid = getHumanoid()
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Frame draggable
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 220, 0, 150)
+frame.Position = UDim2.new(0.5, -110, 0.5, -75)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "jaimepasarbi"
+title.BackgroundColor3 = Color3.fromRGB(150,0,0)
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Parent = frame
+
+-- Texte vitesse
+local speed = 16
+local speedText = Instance.new("TextLabel")
+speedText.Size = UDim2.new(1,0,0,30)
+speedText.Position = UDim2.new(0,0,0,40)
+speedText.Text = "Vitesse: 16"
+speedText.BackgroundColor3 = Color3.fromRGB(0,0,0)
+speedText.TextColor3 = Color3.fromRGB(255,0,0)
+speedText.TextScaled = true
+speedText.Parent = frame
+
+-- Bouton +
+local plus = Instance.new("TextButton")
+plus.Size = UDim2.new(0.5,0,0,40)
+plus.Position = UDim2.new(0,0,0,70)
+plus.Text = "+"
+plus.BackgroundColor3 = Color3.fromRGB(200,0,0)
+plus.TextScaled = true
+plus.Parent = frame
+
+-- Bouton -
+local minus = Instance.new("TextButton")
+minus.Size = UDim2.new(0.5,0,0,40)
+minus.Position = UDim2.new(0.5,0,0,70)
+minus.Text = "-"
+minus.BackgroundColor3 = Color3.fromRGB(100,0,0)
+minus.TextScaled = true
+minus.Parent = frame
+
+-- Bouton reset
+local reset = Instance.new("TextButton")
+reset.Size = UDim2.new(1,0,0,40)
+reset.Position = UDim2.new(0,0,0,110)
+reset.Text = "Reset (16)"
+reset.BackgroundColor3 = Color3.fromRGB(50,0,0)
+reset.TextScaled = true
+reset.Parent = frame
+
+-- Fonction pour mettre à jour la vitesse
+local function updateSpeed()
+    if humanoid then
+        humanoid.WalkSpeed = speed
+        speedText.Text = "Vitesse: "..speed
+    end
+end
+
+-- Connexion boutons
+plus.MouseButton1Click:Connect(function()
+    if speed < 100 then  -- limite max 100
+        speed = speed + 1
+        updateSpeed()
+    end
+end)
+
+minus.MouseButton1Click:Connect(function()
+    if speed > 0 then
+        speed = speed - 1
+        updateSpeed()
+    end
+end)
+
+reset.MouseButton1Click:Connect(function()
+    speed = 16
+    updateSpeed()
+end)
+
+-- Réappliquer après respawn
+player.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+    task.wait(0.2)
+    updateSpeed()
+end)
+
+-- Initialiser
+updateSpeed()
