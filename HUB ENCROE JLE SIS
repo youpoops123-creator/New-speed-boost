@@ -1,0 +1,297 @@
+repeat task.wait() until game:IsLoaded()
+
+local player = game.Players.LocalPlayer
+local LOGO = "rbxassetid://115536282313021"
+local KEY = "Jaimepasarbi-2026"
+local DISCORD = "https://discord.gg/33DSY75P4"
+
+local gui = Instance.new("ScreenGui", game.CoreGui)
+
+-- =====================
+-- KEY SYSTEM
+-- =====================
+
+local keyFrame = Instance.new("Frame", gui)
+keyFrame.Size = UDim2.new(0,300,0,180)
+keyFrame.Position = UDim2.new(0.5,-150,0.5,-90)
+keyFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+
+local logoKey = Instance.new("ImageLabel", keyFrame)
+logoKey.Size = UDim2.new(0,80,0,80)
+logoKey.Position = UDim2.new(0.5,-40,0,-40)
+logoKey.Image = LOGO
+logoKey.BackgroundTransparency = 1
+
+local box = Instance.new("TextBox", keyFrame)
+box.Size = UDim2.new(0.8,0,0,35)
+box.Position = UDim2.new(0.1,0,0.4,0)
+box.PlaceholderText = "Enter Key"
+
+local check = Instance.new("TextButton", keyFrame)
+check.Size = UDim2.new(0.8,0,0,30)
+check.Position = UDim2.new(0.1,0,0.65,0)
+check.Text = "VALIDATE"
+
+local get = Instance.new("TextButton", keyFrame)
+get.Size = UDim2.new(0.8,0,0,25)
+get.Position = UDim2.new(0.1,0,0.85,0)
+get.Text = "GET KEY (DISCORD)"
+
+get.MouseButton1Click:Connect(function()
+setclipboard(DISCORD)
+end)
+
+-- =====================
+-- LOAD HUB
+-- =====================
+
+function loadHub()
+
+keyFrame:Destroy()
+
+-- LOADING AVEC LOGO
+local loading = Instance.new("Frame", gui)
+loading.Size = UDim2.new(1,0,1,0)
+loading.BackgroundColor3 = Color3.fromRGB(0,0,0)
+
+local img = Instance.new("ImageLabel", loading)
+img.Size = UDim2.new(0,200,0,200)
+img.Position = UDim2.new(0.5,-100,0.5,-100)
+img.Image = LOGO
+img.BackgroundTransparency = 1
+
+-- animation
+task.spawn(function()
+for i=1,50 do
+img.Rotation += 3
+img.Size += UDim2.new(0,1,0,1)
+task.wait(0.03)
+end
+end)
+
+task.wait(3)
+loading:Destroy()
+
+-- BOUTON FLOTTANT LOGO
+local toggle = Instance.new("ImageButton", gui)
+toggle.Size = UDim2.new(0,70,0,70)
+toggle.Position = UDim2.new(0,10,0.5,-35)
+toggle.Image = LOGO
+toggle.BackgroundTransparency = 1
+toggle.Draggable = true
+
+-- MAIN HUB
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,520,0,320)
+main.Position = UDim2.new(0.5,-260,0.5,-160)
+main.BackgroundColor3 = Color3.fromRGB(0,0,0)
+main.Visible = false
+main.Active = true
+main.Draggable = true
+
+toggle.MouseButton1Click:Connect(function()
+main.Visible = not main.Visible
+end)
+
+-- LOGO DANS HUB
+local logo = Instance.new("ImageLabel", main)
+logo.Size = UDim2.new(0,120,0,120)
+logo.Position = UDim2.new(1,-130,0,10)
+logo.Image = LOGO
+logo.BackgroundTransparency = 1
+
+-- TABS
+local pages = {}
+local function createPage(name)
+local f = Instance.new("Frame", main)
+f.Size = UDim2.new(1,0,1,-80)
+f.Position = UDim2.new(0,0,0,80)
+f.Visible = false
+f.BackgroundTransparency = 1
+pages[name] = f
+end
+
+local tabs = {"Stealer","Helper","Player","Finder","Server","Discord"}
+
+for i,name in pairs(tabs) do
+local b = Instance.new("TextButton", main)
+b.Size = UDim2.new(0,85,0,30)
+b.Position = UDim2.new(0,(i-1)*85,0,40)
+b.Text = name
+
+createPage(name)
+
+b.MouseButton1Click:Connect(function()
+for _,p in pairs(pages) do p.Visible = false end
+pages[name].Visible = true
+end)
+end
+
+local function button(parent,text,callback,y)
+local b = Instance.new("TextButton", parent)
+b.Size = UDim2.new(0,220,0,35)
+b.Position = UDim2.new(0,10,0,y)
+b.Text = text
+b.MouseButton1Click:Connect(callback)
+end
+
+-- =====================
+-- STEAL FLOOR FIX
+-- =====================
+
+_G.stealFloor = false
+
+button(pages["Stealer"],"Steal Floor",function()
+
+_G.stealFloor = not _G.stealFloor
+
+local b = Instance.new("TextButton", gui)
+b.Size = UDim2.new(0,140,0,40)
+b.Position = UDim2.new(1,-150,0.5,0)
+b.Text = "Steal Floor : ON"
+b.Draggable = true
+
+b.MouseButton1Click:Connect(function()
+_G.stealFloor = not _G.stealFloor
+b.Text = "Steal Floor : "..(_G.stealFloor and "ON" or "OFF")
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+if _G.stealFloor then
+local char = player.Character
+if char and char:FindFirstChild("HumanoidRootPart") then
+char.HumanoidRootPart.Velocity = Vector3.new(0,30,0)
+end
+end
+end)
+
+end,10)
+
+-- =====================
+-- SPEED BOOST (TON SCRIPT)
+-- =====================
+
+_G.speedUI = nil
+
+button(pages["Player"],"Speed Boost",function()
+
+if _G.speedUI then
+_G.speedUI:Destroy()
+_G.speedUI = nil
+return
+end
+
+local humanoid = player.Character:WaitForChild("Humanoid")
+
+local gui2 = Instance.new("ScreenGui", game.CoreGui)
+_G.speedUI = gui2
+
+local frame = Instance.new("Frame", gui2)
+frame.Size = UDim2.new(0,220,0,150)
+frame.Position = UDim2.new(0.5,-110,0.5,-75)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Active = true
+frame.Draggable = true
+
+local speed = 16
+
+local txt = Instance.new("TextLabel", frame)
+txt.Size = UDim2.new(1,0,0,40)
+txt.Text = "Speed: 16"
+
+local plus = Instance.new("TextButton", frame)
+plus.Size = UDim2.new(0.5,0,0,40)
+plus.Position = UDim2.new(0,0,0,40)
+plus.Text = "+"
+
+local minus = Instance.new("TextButton", frame)
+minus.Size = UDim2.new(0.5,0,0,40)
+minus.Position = UDim2.new(0.5,0,0,40)
+minus.Text = "-"
+
+plus.MouseButton1Click:Connect(function()
+if speed < 100 then speed += 1 end
+humanoid.WalkSpeed = speed
+txt.Text = "Speed: "..speed
+end)
+
+minus.MouseButton1Click:Connect(function()
+if speed > 0 then speed -= 1 end
+humanoid.WalkSpeed = speed
+txt.Text = "Speed: "..speed
+end)
+
+end,60)
+
+-- =====================
+-- FINDER TOGGLE
+-- =====================
+
+_G.finderUI = nil
+
+button(pages["Finder"],"Finder PRO",function()
+
+if _G.finderUI then
+_G.finderUI:Destroy()
+_G.finderUI = nil
+return
+end
+
+local fgui = Instance.new("ScreenGui", game.CoreGui)
+_G.finderUI = fgui
+
+local frame = Instance.new("Frame", fgui)
+frame.Size = UDim2.new(0,300,0,200)
+frame.Position = UDim2.new(0.5,-150,0.5,-100)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+frame.Active = true
+frame.Draggable = true
+
+local txt = Instance.new("TextLabel", frame)
+txt.Size = UDim2.new(1,0,1,0)
+txt.Text = "Finder Ready"
+
+end,10)
+
+-- =====================
+-- SERVER HOP
+-- =====================
+
+button(pages["Server"],"Server Hop",function()
+
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+
+local data = HttpService:JSONDecode(game:HttpGet(
+"https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
+))
+
+for _,s in pairs(data.data) do
+if s.id ~= game.JobId and s.playing < s.maxPlayers then
+TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, player)
+break
+end
+end
+
+end,10)
+
+-- =====================
+-- DISCORD
+-- =====================
+
+button(pages["Discord"],"Copy Discord",function()
+setclipboard(DISCORD)
+end,10)
+
+end
+
+-- KEY CHECK
+check.MouseButton1Click:Connect(function()
+if box.Text == KEY then
+loadHub()
+else
+check.Text = "WRONG ❌"
+task.wait(1)
+check.Text = "VALIDATE"
+end
+end)
