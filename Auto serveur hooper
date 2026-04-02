@@ -1,0 +1,104 @@
+repeat task.wait() until game:IsLoaded()
+
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local PlaceID = game.PlaceId
+local visited = {}
+local autoHop = false
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 280, 0, 200)
+frame.Position = UDim2.new(0.5, -140, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Gradient animé
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0))
+}
+gradient.Parent = frame
+
+task.spawn(function()
+    while true do
+        gradient.Offset = Vector2.new(math.sin(tick()),0)
+        task.wait(0.05)
+    end
+end)
+
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,50)
+title.Text = "SERVER HOPPER\nBy jaimepasarbi"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Font = Enum.Font.Cartoon
+title.Parent = frame
+
+-- Bouton hop
+local hopBtn = Instance.new("TextButton")
+hopBtn.Size = UDim2.new(0.8,0,0,50)
+hopBtn.Position = UDim2.new(0.1,0,0.4,0)
+hopBtn.Text = "FULL SERVER HOP"
+hopBtn.BackgroundColor3 = Color3.fromRGB(180,0,0)
+hopBtn.TextScaled = true
+hopBtn.Font = Enum.Font.Cartoon
+hopBtn.Parent = frame
+
+-- Bouton auto hop
+local autoBtn = Instance.new("TextButton")
+autoBtn.Size = UDim2.new(0.8,0,0,50)
+autoBtn.Position = UDim2.new(0.1,0,0.7,0)
+autoBtn.Text = "AUTO: OFF"
+autoBtn.BackgroundColor3 = Color3.fromRGB(100,0,0)
+autoBtn.TextScaled = true
+autoBtn.Font = Enum.Font.Cartoon
+autoBtn.Parent = frame
+
+-- Fonction pour trouver serveur rempli
+local function getServer()
+    local url = "https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"
+    local data = HttpService:JSONDecode(game:HttpGet(url))
+
+    for _,server in pairs(data.data) do
+        if server.playing >= (server.maxPlayers - 2) and not visited[server.id] then
+            visited[server.id] = true
+            return server.id
+        end
+    end
+end
+
+-- Fonction hop
+local function hop()
+    local serverId = getServer()
+    if serverId then
+        TeleportService:TeleportToPlaceInstance(PlaceID, serverId, player)
+    end
+end
+
+hopBtn.MouseButton1Click:Connect(hop)
+
+-- Auto hop
+autoBtn.MouseButton1Click:Connect(function()
+    autoHop = not autoHop
+    autoBtn.Text = "AUTO: "..(autoHop and "ON" or "OFF")
+
+    if autoHop then
+        while autoHop do
+            hop()
+            task.wait(6)
+        end
+    end
+end)
