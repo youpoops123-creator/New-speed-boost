@@ -1,0 +1,135 @@
+-- Attendre le jeu et le joueur
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
+local player = game.Players.LocalPlayer
+
+-- Fonction pour récupérer Humanoid
+local function getHumanoid()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("Humanoid"), char:WaitForChild("HumanoidRootPart")
+end
+
+local humanoid, hrp = getHumanoid()
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Frame draggable
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 280, 0, 200)
+frame.Position = UDim2.new(0.5, -140, 0.5, -100)
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "jaimepasarbi"
+title.BackgroundColor3 = Color3.fromRGB(150,0,0)
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Parent = frame
+
+-- Texte vitesse
+local speed = 16
+local speedText = Instance.new("TextLabel")
+speedText.Size = UDim2.new(1,0,0,30)
+speedText.Position = UDim2.new(0,0,0,40)
+speedText.Text = "Vitesse: 16"
+speedText.BackgroundColor3 = Color3.fromRGB(0,0,0)
+speedText.TextColor3 = Color3.fromRGB(255,0,0)
+speedText.TextScaled = true
+speedText.Parent = frame
+
+-- Slider
+local sliderBar = Instance.new("Frame")
+sliderBar.Size = UDim2.new(0.8,0,0,20)
+sliderBar.Position = UDim2.new(0.1,0,0,80)
+sliderBar.BackgroundColor3 = Color3.fromRGB(100,0,0)
+sliderBar.Parent = frame
+
+local slider = Instance.new("TextButton")
+slider.Size = UDim2.new(0,20,1,0)
+slider.Position = UDim2.new(speed/30,0,0,0)
+slider.Text = ""
+slider.BackgroundColor3 = Color3.fromRGB(200,0,0)
+slider.Parent = sliderBar
+slider.AutoButtonColor = false
+
+-- Reset bouton
+local reset = Instance.new("TextButton")
+reset.Size = UDim2.new(1,0,0,40)
+reset.Position = UDim2.new(0,0,0,120)
+reset.Text = "Reset (16)"
+reset.BackgroundColor3 = Color3.fromRGB(50,0,0)
+reset.TextScaled = true
+reset.Parent = frame
+
+-- Compteur au-dessus du personnage
+local billboard = Instance.new("BillboardGui")
+billboard.Size = UDim2.new(0,100,0,50)
+billboard.StudsOffset = Vector3.new(0,3,0)
+billboard.AlwaysOnTop = true
+billboard.Parent = hrp
+
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(1,0,1,0)
+speedLabel.BackgroundTransparency = 1
+speedLabel.TextColor3 = Color3.fromRGB(255,0,0)
+speedLabel.TextScaled = true
+speedLabel.Text = "Speed: "..speed
+speedLabel.Parent = billboard
+
+-- Fonction update
+local function updateSpeed()
+    if humanoid then
+        humanoid.WalkSpeed = speed
+        speedText.Text = "Vitesse: "..math.floor(speed)
+        speedLabel.Text = "Speed: "..math.floor(speed)
+        slider.Position = UDim2.new(speed/30,0,0,0)
+        
+        -- clignotement rouge si boost > 16
+        if speed > 16 then
+            slider.BackgroundColor3 = Color3.fromRGB(255,0,0)
+        else
+            slider.BackgroundColor3 = Color3.fromRGB(200,0,0)
+        end
+    end
+end
+
+-- Slider tactile
+local dragging = false
+slider.MouseButton1Down:Connect(function() dragging = true end)
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+game:GetService("RunService").RenderStepped:Connect(function()
+    if dragging then
+        local mouse = player:GetMouse()
+        local relX = math.clamp((mouse.X - sliderBar.AbsolutePosition.X)/sliderBar.AbsoluteSize.X,0,1)
+        speed = relX*30
+        updateSpeed()
+    end
+end)
+
+-- Reset
+reset.MouseButton1Click:Connect(function()
+    speed = 16
+    updateSpeed()
+end)
+
+-- Respawn fix
+player.CharacterAdded:Connect(function(char)
+    humanoid, hrp = char:WaitForChild("Humanoid"), char:WaitForChild("HumanoidRootPart")
+    billboard.Parent = hrp
+    task.wait(0.2)
+    updateSpeed()
+end)
+
+-- Initialiser
+updateSpeed()
