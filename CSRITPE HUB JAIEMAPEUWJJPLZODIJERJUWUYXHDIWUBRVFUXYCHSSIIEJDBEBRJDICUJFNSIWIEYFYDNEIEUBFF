@@ -1,0 +1,195 @@
+repeat task.wait() until game:IsLoaded()
+
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui", game.CoreGui)
+
+-- 🔑 KEY
+local KEY = "Jaimepasarbi-2026"
+
+local keyFrame = Instance.new("Frame", gui)
+keyFrame.Size = UDim2.new(0,300,0,160)
+keyFrame.Position = UDim2.new(0.5,-150,0.5,-80)
+keyFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+
+local box = Instance.new("TextBox", keyFrame)
+box.Size = UDim2.new(1,0,0.5,0)
+box.PlaceholderText = "Enter Key"
+box.TextScaled = true
+
+local btn = Instance.new("TextButton", keyFrame)
+btn.Size = UDim2.new(1,0,0.5,0)
+btn.Position = UDim2.new(0,0,0.5,0)
+btn.Text = "ENTER"
+
+-- LOAD HUB
+function loadHub()
+keyFrame:Destroy()
+
+-- LOADING
+local load = Instance.new("TextLabel", gui)
+load.Size = UDim2.new(1,0,1,0)
+load.BackgroundColor3 = Color3.fromRGB(0,0,0)
+load.Text = "JAIMEPASARBI HUB"
+load.TextScaled = true
+load.TextColor3 = Color3.fromRGB(255,0,0)
+task.wait(2)
+load:Destroy()
+
+-- FLOAT BTN
+local toggle = Instance.new("TextButton", gui)
+toggle.Size = UDim2.new(0,60,0,60)
+toggle.Position = UDim2.new(0,10,0.5,-30)
+toggle.Text = "JPA"
+toggle.BackgroundColor3 = Color3.fromRGB(180,0,0)
+toggle.Draggable = true
+
+-- MAIN
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,520,0,320)
+main.Position = UDim2.new(0.5,-260,0.5,-160)
+main.BackgroundColor3 = Color3.fromRGB(0,0,0)
+main.Visible = false
+main.Active = true
+main.Draggable = true
+
+toggle.MouseButton1Click:Connect(function()
+main.Visible = not main.Visible
+end)
+
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "JAIMEPASARBI HUB"
+title.TextScaled = true
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.new(1,1,1)
+
+-- PAGES
+local pages = {}
+local function createPage(name)
+local f = Instance.new("Frame", main)
+f.Size = UDim2.new(1,0,1,-90)
+f.Position = UDim2.new(0,0,0,90)
+f.Visible = false
+f.BackgroundTransparency = 1
+pages[name] = f
+end
+
+local tabs = {"Stealer","Helper","Player","Finder","Server","Discord"}
+
+for i,name in pairs(tabs) do
+local b = Instance.new("TextButton", main)
+b.Size = UDim2.new(0,85,0,30)
+b.Position = UDim2.new(0,(i-1)*85,0,45)
+b.Text = name
+
+createPage(name)
+
+b.MouseButton1Click:Connect(function()
+for _,p in pairs(pages) do p.Visible = false end
+pages[name].Visible = true
+end)
+end
+
+local function button(parent,text,callback,y)
+local b = Instance.new("TextButton", parent)
+b.Size = UDim2.new(0,220,0,35)
+b.Position = UDim2.new(0,10,0,y)
+b.Text = text
+b.MouseButton1Click:Connect(callback)
+end
+
+-- =========================
+-- 🔍 FINDER PRO INTÉGRÉ
+-- =========================
+
+button(pages["Finder"],"Open Finder PRO",function()
+
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local PlaceID = game.PlaceId
+local JobID = game.JobId
+
+local fgui = Instance.new("ScreenGui", game.CoreGui)
+
+local frame = Instance.new("Frame", fgui)
+frame.Size = UDim2.new(0,380,0,320)
+frame.Position = UDim2.new(0.5,-190,0.5,-160)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "FINDER PRO"
+title.TextScaled = true
+title.BackgroundTransparency = 1
+
+local function loadServers()
+frame:ClearAllChildren()
+title.Parent = frame
+
+local data = HttpService:JSONDecode(game:HttpGet(
+"https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"
+))
+
+local count = 0
+
+for _,s in pairs(data.data) do
+if count >= 6 then break end
+if s.id ~= JobID then
+count += 1
+
+local txt = Instance.new("TextLabel", frame)
+txt.Size = UDim2.new(0.6,0,0,30)
+txt.Position = UDim2.new(0.05,0,0.2 + count*0.1,0)
+txt.Text = "👥 "..s.playing.."/"..s.maxPlayers
+txt.BackgroundTransparency = 1
+
+local btn = Instance.new("TextButton", frame)
+btn.Size = UDim2.new(0.25,0,0,30)
+btn.Position = UDim2.new(0.7,0,0.2 + count*0.1,0)
+btn.Text = "JOIN"
+
+btn.MouseButton1Click:Connect(function()
+TeleportService:TeleportToPlaceInstance(PlaceID, s.id, player)
+end)
+end
+end
+end
+
+loadServers()
+
+end,10)
+
+-- =========================
+-- 🌐 SERVER HOPPER INTÉGRÉ
+-- =========================
+
+button(pages["Server"],"Full Server Hop",function()
+game:GetService("TeleportService"):Teleport(game.PlaceId, player)
+end,10)
+
+button(pages["Server"],"Auto Hop",function()
+_G.autohop = not _G.autohop
+
+while _G.autohop do
+task.wait(6)
+game:GetService("TeleportService"):Teleport(game.PlaceId, player)
+end
+end,60)
+
+-- =========================
+-- 💬 DISCORD
+-- =========================
+
+button(pages["Discord"],"Copy Discord",function()
+setclipboard("https://discord.gg/33DSY75P4")
+end,10)
+
+end
+
+btn.MouseButton1Click:Connect(function()
+if box.Text == KEY then
+loadHub()
+end
+end)
