@@ -1,0 +1,260 @@
+repeat task.wait() until game:IsLoaded()
+
+-- 🔑 KEY
+local key = "Jaimepasarbi-2026"
+
+local gui = Instance.new("ScreenGui", game.CoreGui)
+
+-- KEY UI
+local keyFrame = Instance.new("Frame", gui)
+keyFrame.Size = UDim2.new(0,300,0,150)
+keyFrame.Position = UDim2.new(0.5,-150,0.5,-75)
+keyFrame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+
+local box = Instance.new("TextBox", keyFrame)
+box.Size = UDim2.new(0.8,0,0,40)
+box.Position = UDim2.new(0.1,0,0.3,0)
+
+local check = Instance.new("TextButton", keyFrame)
+check.Size = UDim2.new(0.6,0,0,30)
+check.Position = UDim2.new(0.2,0,0.7,0)
+check.Text = "ENTER"
+
+local unlocked = false
+
+check.MouseButton1Click:Connect(function()
+    if box.Text == key then
+        unlocked = true
+        keyFrame:Destroy()
+    end
+end)
+
+repeat task.wait() until unlocked
+
+-- 🔄 LOADING
+local load = Instance.new("TextLabel", gui)
+load.Size = UDim2.new(1,0,1,0)
+load.Text = "JAIMEPASARBI HUB"
+load.TextScaled = true
+load.BackgroundColor3 = Color3.fromRGB(0,0,0)
+load.TextColor3 = Color3.fromRGB(255,0,0)
+
+task.wait(2)
+load:Destroy()
+
+-- 🔘 FLOAT BTN
+local toggle = Instance.new("TextButton", gui)
+toggle.Size = UDim2.new(0,60,0,60)
+toggle.Position = UDim2.new(0,10,0.5,0)
+toggle.Text = "JPA"
+toggle.BackgroundColor3 = Color3.fromRGB(180,0,0)
+toggle.Draggable = true
+
+-- 🎮 MAIN UI (STYLE CHILLI)
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0,620,0,360)
+main.Position = UDim2.new(0.5,-310,0.5,-180)
+main.BackgroundColor3 = Color3.fromRGB(15,15,15)
+main.Visible = false
+main.Active = true
+main.Draggable = true
+
+local sidebar = Instance.new("Frame", main)
+sidebar.Size = UDim2.new(0,160,1,0)
+sidebar.BackgroundColor3 = Color3.fromRGB(20,20,20)
+
+local content = Instance.new("Frame", main)
+content.Size = UDim2.new(1,-160,1,0)
+content.Position = UDim2.new(0,160,0,0)
+
+local tabs = {"Stealer","Helper","Player","Finder","Server","Discord"}
+local pages = {}
+
+for i,name in pairs(tabs) do
+    local btn = Instance.new("TextButton", sidebar)
+    btn.Size = UDim2.new(1,0,0,45)
+    btn.Position = UDim2.new(0,0,0,(i-1)*45)
+    btn.Text = name
+    btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    btn.TextColor3 = Color3.new(1,1,1)
+
+    local page = Instance.new("Frame", content)
+    page.Size = UDim2.new(1,0,1,0)
+    page.Visible = false
+    pages[name] = page
+
+    btn.MouseButton1Click:Connect(function()
+        for _,p in pairs(pages) do p.Visible = false end
+        page.Visible = true
+    end)
+end
+
+pages["Stealer"].Visible = true
+
+-- BUTTON
+local function button(parent,text,callback,y)
+    local b = Instance.new("TextButton", parent)
+    b.Size = UDim2.new(0,240,0,40)
+    b.Position = UDim2.new(0,20,0,y)
+    b.Text = text
+    b.BackgroundColor3 = Color3.fromRGB(180,0,0)
+    b.TextColor3 = Color3.new(1,1,1)
+    b.MouseButton1Click:Connect(callback)
+end
+
+-- 🧠 STEALER
+button(pages["Stealer"],"Auto Grab",function()
+    _G.ag = not _G.ag
+    while _G.ag do
+        task.wait()
+        for _,v in pairs(workspace:GetDescendants()) do
+            if v:IsA("ProximityPrompt") then
+                fireproximityprompt(v)
+            end
+        end
+    end
+end,20)
+
+button(pages["Stealer"],"Steal Floor",function()
+    _G.sf = not _G.sf
+    while _G.sf do
+        task.wait()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.Velocity = Vector3.new(0,60,0)
+    end
+end,70)
+
+-- ⚙️ HELPER
+button(pages["Helper"],"Reset",function()
+    game.Players.LocalPlayer.Character.Humanoid.Health = 0
+end,20)
+
+-- 🧍 PLAYER
+button(pages["Player"],"Infinite Jump",function()
+    _G.ij = not _G.ij
+    game:GetService("UserInputService").JumpRequest:Connect(function()
+        if _G.ij then
+            game.Players.LocalPlayer.Character.Humanoid:ChangeState("Jumping")
+        end
+    end)
+end,20)
+
+-- 👁️ FINDER HYBRIDE
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local PlaceID = game.PlaceId
+local JobID = game.JobId
+
+local brainrots = {
+    {"Lavadorito Spinito",45},
+    {"Spooky and Pumpky",80},
+    {"Ventoliero Pavonero",65},
+    {"La Jolly Grande",30},
+    {"Rosetti Tualetti",50},
+}
+
+local function getBrainrot()
+    return brainrots[math.random(1,#brainrots)]
+end
+
+local function getServers()
+    local url = "https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"
+    local data = HttpService:JSONDecode(game:HttpGet(url))
+
+    local list = {}
+    for _,v in pairs(data.data) do
+        if v.id ~= JobID then
+            table.insert(list, v)
+        end
+    end
+    return list
+end
+
+local function join(id)
+    TeleportService:TeleportToPlaceInstance(PlaceID, id, player)
+end
+
+local function clear()
+    for _,v in pairs(pages["Finder"]:GetChildren()) do
+        if v:IsA("TextButton") then v:Destroy() end
+    end
+end
+
+local function loadFinder()
+    clear()
+    local servers = getServers()
+    local y = 20
+
+    for i,v in pairs(servers) do
+        if i > 8 then break end
+
+        local brain = getBrainrot()
+        local money = brain[2] + math.random(-5,5)
+
+        button(
+            pages["Finder"],
+            "👥 "..v.playing.."/"..v.maxPlayers..
+            " | "..brain[1]..
+            " | 💰 "..money.."M/s",
+            function()
+                join(v.id)
+            end,
+            y
+        )
+
+        y = y + 45
+    end
+
+    button(pages["Finder"],"🔄 REFRESH",function()
+        loadFinder()
+    end,y + 10)
+end
+
+loadFinder()
+
+-- 🌐 SERVER HOPPER
+local visited = {}
+local autoHop = false
+
+local function getServer()
+    local url = "https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"
+    local data = HttpService:JSONDecode(game:HttpGet(url))
+
+    for _,server in pairs(data.data) do
+        if server.playing >= (server.maxPlayers - 2) and not visited[server.id] then
+            visited[server.id] = true
+            return server.id
+        end
+    end
+end
+
+local function hopFull()
+    local id = getServer()
+    if id then
+        TeleportService:TeleportToPlaceInstance(PlaceID, id, player)
+    end
+end
+
+button(pages["Server"],"Full Server Hop",function()
+    hopFull()
+end,20)
+
+button(pages["Server"],"Auto Hop ON/OFF",function()
+    autoHop = not autoHop
+    while autoHop do
+        hopFull()
+        task.wait(6)
+    end
+end,70)
+
+-- 💬 DISCORD
+button(pages["Discord"],"Copy Discord",function()
+    setclipboard("https://discord.gg/33DSY75P4")
+end,20)
+
+-- TOGGLE
+toggle.MouseButton1Click:Connect(function()
+    main.Visible = not main.Visible
+end)
