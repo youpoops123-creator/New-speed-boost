@@ -1,0 +1,194 @@
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local PlaceID = game.PlaceId
+local JobID = game.JobId
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Toggle JPA
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(0,50,0,50)
+toggle.Position = UDim2.new(0,10,0.5,-25)
+toggle.Text = "JPA"
+toggle.BackgroundColor3 = Color3.fromRGB(180,0,0)
+toggle.TextScaled = true
+toggle.Font = Enum.Font.Cartoon
+toggle.Parent = gui
+
+-- Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0,360,0,300)
+frame.Position = UDim2.new(0.5,-180,0.5,-150)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+frame.Visible = false
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Coins arrondis
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0,15)
+corner.Parent = frame
+
+-- Bordure
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(255,0,0)
+stroke.Thickness = 2
+stroke.Parent = frame
+
+-- Gradient animé
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0))
+}
+gradient.Parent = frame
+
+task.spawn(function()
+    while true do
+        gradient.Offset = Vector2.new(math.sin(tick()),0)
+        task.wait(0.05)
+    end
+end)
+
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "FINDER\nBy jaimepasarbi"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Font = Enum.Font.Cartoon
+title.Parent = frame
+
+-- Brainrots (10M → 100M)
+local brainrots = {
+    {"Lavadorito Spinito","45M"},
+    {"Spooky and Pumpky","80M"},
+    {"Ventoliero Pavonero","65M"},
+    {"La Jolly Grande","30M"},
+    {"W or L","30M"},
+    {"Rosetti Tualetti","50M"},
+    {"Nacho Spyder","50M"},
+    {"Jolly Jolly Sahur","45M"},
+    {"Ketchuru and Musturu","42.5M"},
+    {"Orcaledon","40M"},
+    {"Ketupat Kepat","35M"},
+    {"La Taco Combinasion","35M"},
+    {"Tang Tang Keletang","33.5M"},
+    {"Lovin Rose","32.5M"},
+    {"Los Tacoritas","32M"},
+    {"Eviledon","31.5M"},
+    {"Los Primos","31M"},
+    {"La Grande Combinasion","10M"},
+}
+
+local function getRandom()
+    return brainrots[math.random(1,#brainrots)]
+end
+
+-- SERVER HOP (différent serveur public)
+local function hop()
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet(
+            "https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"
+        ))
+    end)
+
+    if success and result and result.data then
+        local found = false
+
+        for _,server in pairs(result.data) do
+            if server.id ~= JobID and server.playing < server.maxPlayers then
+                TeleportService:TeleportToPlaceInstance(PlaceID, server.id, player)
+                found = true
+                break
+            end
+        end
+
+        if not found then
+            TeleportService:Teleport(PlaceID, player)
+        end
+    else
+        TeleportService:Teleport(PlaceID, player)
+    end
+end
+
+-- Lignes
+local lines = {}
+
+local function createLines()
+    for _,v in pairs(lines) do v:Destroy() end
+    lines = {}
+
+    for i=1,5 do
+        local players = math.random(6,8) -- minimum 6/8
+        local data = getRandom()
+
+        local txt = Instance.new("TextLabel")
+        txt.Size = UDim2.new(0.6,0,0,30)
+        txt.Position = UDim2.new(0.05,0,0.2 + i*0.11,0)
+        txt.BackgroundTransparency = 1
+        txt.Text = "👥 "..players.."/8 | "..data[1].." | 💰 "..data[2]
+        txt.TextColor3 = Color3.fromRGB(255,255,255)
+        txt.TextScaled = true
+        txt.Font = Enum.Font.Cartoon
+        txt.Parent = frame
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0.25,0,0,30)
+        btn.Position = UDim2.new(0.7,0,0.2 + i*0.11,0)
+        btn.Text = "REJOIN"
+        btn.BackgroundColor3 = Color3.fromRGB(180,0,0)
+        btn.TextScaled = true
+        btn.Font = Enum.Font.Cartoon
+        btn.Parent = frame
+
+        btn.MouseButton1Click:Connect(hop)
+
+        table.insert(lines, txt)
+        table.insert(lines, btn)
+    end
+end
+
+-- REFRESH avec countdown
+local refresh = Instance.new("TextButton")
+refresh.Size = UDim2.new(0.4,0,0,30)
+refresh.Position = UDim2.new(0.3,0,0.85,0)
+refresh.Text = "REFRESH"
+refresh.BackgroundColor3 = Color3.fromRGB(180,0,0)
+refresh.TextScaled = true
+refresh.Font = Enum.Font.Cartoon
+refresh.Parent = frame
+
+local canRefresh = true
+
+refresh.MouseButton1Click:Connect(function()
+    if not canRefresh then return end
+
+    canRefresh = false
+    createLines()
+
+    for i=9,0,-1 do
+        refresh.Text = "WAIT "..i
+        task.wait(1)
+    end
+
+    refresh.Text = "REFRESH"
+    canRefresh = true
+end)
+
+-- Toggle
+toggle.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+end)
+
+createLines()
