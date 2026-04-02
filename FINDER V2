@@ -1,0 +1,173 @@
+repeat task.wait() until game:IsLoaded()
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local PlaceID = game.PlaceId
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Toggle JPA
+local toggle = Instance.new("TextButton")
+toggle.Size = UDim2.new(0,50,0,50)
+toggle.Position = UDim2.new(0,10,0.5,-25)
+toggle.Text = "JPA"
+toggle.BackgroundColor3 = Color3.fromRGB(150,0,0)
+toggle.TextScaled = true
+toggle.Font = Enum.Font.Cartoon
+toggle.Parent = gui
+
+-- Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0,360,0,300)
+frame.Position = UDim2.new(0.5,-180,0.5,-150)
+frame.BackgroundColor3 = Color3.fromRGB(0,0,0)
+frame.Visible = false
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+-- Gradient animé
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255,0,0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0))
+}
+gradient.Parent = frame
+
+task.spawn(function()
+    while true do
+        gradient.Offset = Vector2.new(math.sin(tick()),0)
+        task.wait(0.05)
+    end
+end)
+
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1,0,0,40)
+title.Text = "FINDER\nBy jaimepasarbi"
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextScaled = true
+title.Font = Enum.Font.Cartoon
+title.Parent = frame
+
+-- Bouton refresh
+local refreshBtn = Instance.new("TextButton")
+refreshBtn.Size = UDim2.new(0.4,0,0,30)
+refreshBtn.Position = UDim2.new(0.3,0,0.85,0)
+refreshBtn.Text = "REFRESH"
+refreshBtn.BackgroundColor3 = Color3.fromRGB(180,0,0)
+refreshBtn.TextScaled = true
+refreshBtn.Font = Enum.Font.Cartoon
+refreshBtn.Parent = frame
+
+-- cooldown
+local canRefresh = true
+
+-- brainrot data
+local function getRandomBrainrot()
+    local chance = math.random(1,100)
+
+    if chance <= 10 then
+        return "🍓 Strawberry Elephant", "750M"
+    elseif chance <= 20 then
+        return "🐱 Meowl", "600M"  -- corrigé ici
+    end
+
+    local normal = {
+        {"🐉 Dragon Cannelloni", {"250M","312.5M","750M","1B"}},
+        {"🐋 Capitano Moby", {"160M","480M","960M"}},
+        {"👹 Garama And Madundung", {"100M","150M","300M","500M","900M","1B","450M","312.5M"}}
+    }
+
+    local pick = normal[math.random(1,#normal)]
+    local name = pick[1]
+    local value = pick[2][math.random(1,#pick[2])]
+
+    return name, value
+end
+
+-- lignes
+local lines = {}
+
+local function createLines()
+    for _,v in pairs(lines) do
+        v:Destroy()
+    end
+    lines = {}
+
+    for i = 1,5 do
+        local players = math.random(0,8)
+        local name, money = getRandomBrainrot()
+
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(0.6,0,0,30)
+        text.Position = UDim2.new(0.05,0,0.2 + i*0.11,0)
+        text.BackgroundTransparency = 1
+        text.Text = "👥 "..players.."/8 | "..name.." | 💰 "..money
+        text.TextColor3 = Color3.fromRGB(255,255,255)
+        text.TextScaled = true
+        text.Font = Enum.Font.Cartoon
+        text.Parent = frame
+
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0.25,0,0,30)
+        btn.Position = UDim2.new(0.7,0,0.2 + i*0.11,0)
+        btn.Text = "REJOIN"
+        btn.BackgroundColor3 = Color3.fromRGB(180,0,0)
+        btn.TextScaled = true
+        btn.Font = Enum.Font.Cartoon
+        btn.Parent = frame
+
+        btn.MouseButton1Click:Connect(function()
+            local success, result = pcall(function()
+                return HttpService:JSONDecode(game:HttpGet(
+                    "https://games.roblox.com/v1/games/"..PlaceID.."/servers/Public?sortOrder=Desc&limit=100"
+                ))
+            end)
+
+            if success and result and result.data then
+                for _,server in pairs(result.data) do
+                    if server.playing < server.maxPlayers then
+                        TeleportService:TeleportToPlaceInstance(PlaceID, server.id, player)
+                        break
+                    end
+                end
+            else
+                TeleportService:Teleport(PlaceID, player)
+            end
+        end)
+
+        table.insert(lines, text)
+        table.insert(lines, btn)
+    end
+end
+
+-- refresh système
+refreshBtn.MouseButton1Click:Connect(function()
+    if not canRefresh then return end
+
+    canRefresh = false
+    refreshBtn.Text = "WAIT 10s"
+
+    createLines()
+
+    task.delay(10, function()
+        canRefresh = true
+        refreshBtn.Text = "REFRESH"
+    end)
+end)
+
+-- toggle
+toggle.MouseButton1Click:Connect(function()
+    frame.Visible = not frame.Visible
+end)
+
+-- initial
+createLines()
