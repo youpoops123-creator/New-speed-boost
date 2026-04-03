@@ -1,0 +1,42 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/7GrandDadPGN/VapeV4ForRoblox/main/NewMainScript.lua"))()
+
+local Window = Library:CreateWindow({
+    Name = "JAIMEPASARBI HUB",
+    Theme = "Dark",
+    Accent = Color3.fromRGB(170, 0, 255) -- violet néon
+})
+
+-- Onglets
+local MainTab = Window:CreateTab("Main")
+local ServerTab = Window:CreateTab("Server")
+local MiscTab = Window:CreateTab("Misc")
+
+-- Boutons stylés
+
+MainTab:CreateButton({
+    Name = "Finder OP",
+    Callback = function()
+        print("Finder activé")
+    end
+})
+
+MainTab:CreateButton({
+    Name = "Auto Farm",
+    Callback = function()
+        print("Auto Farm activé")
+    end
+})
+
+ServerTab:CreateButton({
+    Name = "Server Hop",
+    Callback = function()
+        print("Server hop...")
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Discord",
+    Callback = function()
+        setclipboard("https://discord.gg/tonserveur")
+    end
+})
