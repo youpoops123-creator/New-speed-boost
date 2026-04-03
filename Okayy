@@ -1,0 +1,93 @@
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+
+-- GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "JAIMEPASARBI_HUB"
+
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 400, 0, 300)
+main.Position = UDim2.new(0.5, -200, 0.5, -150)
+main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+main.Active = true
+main.Draggable = true
+
+Instance.new("UICorner", main).CornerRadius = UDim.new(0,12)
+
+local stroke = Instance.new("UIStroke", main)
+stroke.Color = Color3.fromRGB(170,0,255)
+
+-- Title
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundTransparency = 1
+title.Text = "JAIMEPASARBI HUB"
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+
+-- Button function
+function createButton(text, y, callback)
+    local btn = Instance.new("TextButton", main)
+    btn.Size = UDim2.new(0, 350, 0, 40)
+    btn.Position = UDim2.new(0.5, -175, 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
+
+    btn.MouseButton1Click:Connect(callback)
+end
+
+-- FEATURES
+
+-- Speed
+createButton("Speed Boost", 50, function()
+    humanoid.WalkSpeed = 50
+end)
+
+-- Jump
+createButton("Jump Boost", 100, function()
+    humanoid.JumpPower = 100
+end)
+
+-- Fly
+local flying = false
+createButton("Fly", 150, function()
+    flying = not flying
+    if flying then
+        local bodyVelocity = Instance.new("BodyVelocity", char.HumanoidRootPart)
+        bodyVelocity.Velocity = Vector3.new(0,50,0)
+        bodyVelocity.MaxForce = Vector3.new(1,1,1)*10000
+    else
+        for _,v in pairs(char.HumanoidRootPart:GetChildren()) do
+            if v:IsA("BodyVelocity") then
+                v:Destroy()
+            end
+        end
+    end
+end)
+
+-- Aim Assist (simple)
+createButton("Aim Assist", 200, function()
+    local target = nil
+    for _,v in pairs(game.Players:GetPlayers()) do
+        if v ~= player and v.Character and v.Character:FindFirstChild("Head") then
+            target = v.Character.Head
+            break
+        end
+    end
+
+    if target then
+        workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, target.Position)
+    end
+end)
+
+-- Reset
+createButton("Reset Stats", 250, function()
+    humanoid.WalkSpeed = 16
+    humanoid.JumpPower = 50
+end)
