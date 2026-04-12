@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://rawscripts.net/raw/Be-a-Lucky-Block-Be-A-Luckyblock-script-beta-247374"))()
